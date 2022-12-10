@@ -16,6 +16,12 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@orm/*": ["./src/modules/db/*"],
+      "@common/constants/*": ["./src/common/constants/*"],
+      "@common/filter-exceptions/*": ["./src/common/filters/*"],
+      "@common/helpers/*": ["./src/common/helpers/*"]
+    }
   }
 }
