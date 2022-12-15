@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  server:
+    container_name: auth-system-server
+    env_file: .env
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+      target: prod
+    ports: 
+      - "4220:3000"
+    volumes:
+      - ./:/usr/app/
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: auth-system-postgres
+    image: postgres:latest
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data/
+
+volumes:
+  postgres:
+    name: auth-system-postgres
+

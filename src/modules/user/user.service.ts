@@ -14,7 +14,7 @@ import { UserRepository } from './user.repository';
 export class UserService {
   constructor(private readonly repo: UserRepository, private readonly em: EntityManager, private readonly helper: UserHelper) {}
 
-  async create(data: CreateUserDto, user: IUserAuth) {
+  async create(data: CreateUserDto, user?: IUserAuth) {
     if (!data.user_username) data.user_username = data.user_phone_number;
     data.user_password = this.helper.hashPassword(data.user_password);
     const createdUser = this.repo.create(data);
