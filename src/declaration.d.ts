@@ -3,6 +3,8 @@ type IUserPayload = {
   email: string;
   username: string;
   phone_number: string;
+  first_name: string;
+  last_name: string;
   password: string;
 };
 

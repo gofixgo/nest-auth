@@ -1,13 +1,14 @@
+import * as bcrypt from 'bcryptjs';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { ResetPasswordDto } from './dto/reset.dto';
 import { UserService } from '../user/user.service';
-import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService, private readonly em: EntityManager) {}
+  constructor(private readonly userService: UserService, private readonly jwtService: JwtService, private readonly em: EntityManager) {}
 
   async getOneByUsername(username: string) {
     const qb = this.em.fork().createQueryBuilder(User);
@@ -43,5 +44,15 @@ export class AuthService {
       message: 'رمز با موفقیت تغییر یافت.',
       statusCode: 200,
     };
+  }
+
+  async validateToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET, maxAge: `${parseInt(process.env.JWT_MAX_AGE_DAYS) * 24}h` });
+      return decoded;
+    } catch (e) {
+      if (/invalid\s*token/.test(e.message)) throw new InternalServerErrorException('invalid-token');
+      else throw new InternalServerErrorException();
+    }
   }
 }

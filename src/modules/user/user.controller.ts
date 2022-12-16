@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { EventPattern, MessagePattern, Transport } from '@nestjs/microservices';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReqUser } from 'src/common/decorators/req-user.decorator';
 import { JwtGuard } from '../auth/jwt/jwt.guard';
@@ -30,8 +31,13 @@ export class UserController {
   }
 
   @Get(':username/username')
-  async getOneByUsername(@Param('username') id: string, @ReqUser() user: IUserAuth) {
-    return await this.service.getOneByUsername(id, user);
+  async getOneByUsername(@Param('username') username: string, @ReqUser() user: IUserAuth) {
+    return await this.service.getOneByUsername(username, user);
+  }
+
+  @MessagePattern('users/find/by/username', { transport: Transport.REDIS })
+  async getOneByUsernameEvent(username: string) {
+    return await this.service.getOneByUsername(username);
   }
 
   @Put(':id')

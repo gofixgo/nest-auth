@@ -22,6 +22,8 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       email: user.user_email,
       username: user.user_username,
       password: user.user_password,
+      last_name: user.user_last_name,
+      first_name: user.user_first_name,
       phone_number: user.user_phone_number,
     };
     const token = this.jwt.sign(payload, { expiresIn, secret: process.env.JWT_SECRET });

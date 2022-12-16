@@ -7,6 +7,7 @@ import { Request } from 'express';
 import { AuthLoginDto } from './dto/login.dto';
 import { JwtGuard } from './jwt/jwt.guard';
 import { ResetPasswordDto } from './dto/reset.dto';
+import { EventPattern, MessagePattern, Transport } from '@nestjs/microservices';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -24,5 +25,10 @@ export class AuthController {
   @Patch('reset-password')
   async resetPassword(@Body() data: ResetPasswordDto, @ReqUser() user: IUserAuth) {
     return await this.service.resetPassword(data, user);
+  }
+
+  @MessagePattern('auth/validate/token', { transport: Transport.REDIS })
+  async validateToken(token: string) {
+    return await this.service.validateToken(token);
   }
 }

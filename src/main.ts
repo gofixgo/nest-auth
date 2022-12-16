@@ -6,13 +6,17 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { MikroORM } from '@mikro-orm/core';
 import { CustomExceptionFilter } from './common/filters/customExceptionFilter';
+import { Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
+  const PORT = process.env.PORT;
+  const { MICROSERVICE_HOST, MICROSERVICE_PORT } = process.env;
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(path.join(process.cwd(), 'public'));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new CustomExceptionFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.connectMicroservice({ transport: Transport.REDIS, options: { host: MICROSERVICE_HOST, port: MICROSERVICE_PORT } }, { inheritAppConfig: true });
 
   await app.get(MikroORM).getMigrator().up();
   await app.get(MikroORM).getSchemaGenerator().ensureDatabase();
@@ -22,7 +26,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  const PORT = process.env.PORT;
+  await app.startAllMicroservices();
   await app.listen(PORT).then(() => console.log('server is running on port ' + PORT));
 }
 bootstrap();

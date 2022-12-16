@@ -8,12 +8,25 @@ services:
       context: .
       dockerfile: ./Dockerfile
       target: dev
+      tags:
+        - "amirmuha/auth-system-dev"
     ports: 
-      - "4220:3000"
+      - "4220:${PORT}"
+      - "4225:${MICROSERVICE_PORT}"
     volumes:
       - ./:/usr/app/
     depends_on:
       - postgres
+      - redis
+    networks: 
+      - auth-system
+
+  redis: 
+    image: redis
+    ports: 
+      - "6380:6379"
+    networks: 
+      - auth-system
 
   postgres:
     container_name: auth-system-postgres
@@ -27,7 +40,12 @@ services:
       - "5435:5432"
     volumes:
       - postgres:/var/lib/postgresql/data/
+    networks: 
+      - auth-system
 
+networks: 
+  auth-system:
+    name: auth-system
 volumes:
   postgres:
     name: auth-system-postgres

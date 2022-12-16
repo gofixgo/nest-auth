@@ -56,7 +56,7 @@ export class UserService {
     };
   }
 
-  async getOneByUsername(username: string, user: IUserAuth): Promise<ServiceReturnType<User>> {
+  async getOneByUsername(username: string, user?: IUserAuth): Promise<ServiceReturnType<User>> {
     const qb = this.em.createQueryBuilder(User);
     const result = await qb.select(USER_SELECT_ALL).where({ user_username: username, user_deleted: false }).execute();
     return {
