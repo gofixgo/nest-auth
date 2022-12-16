@@ -5,7 +5,7 @@ export class AuthLoginDto {
   @ApiProperty({ required: true })
   @IsNotEmpty()
   @IsString()
-  @Length(8, 255)
+  @Length(3, 255)
   username: string;
   @ApiProperty({ required: true })
   @IsNotEmpty()

@@ -2,16 +2,32 @@ import { EntityManager } from '@mikro-orm/postgresql';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { ResetPasswordDto } from './dto/reset.dto';
+import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly em: EntityManager) {}
+  constructor(private readonly userService: UserService, private readonly em: EntityManager) {}
 
   async getOneByUsername(username: string) {
-    const qb = this.em.createQueryBuilder(User);
-    const user = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
-    return user[0];
+    const qb = this.em.fork().createQueryBuilder(User);
+    const users_count = await qb.clone().getCount();
+    if (users_count === 0) {
+      const user = await this.userService.create({
+        user_username: process.env.ADMIN_USERNAME,
+        user_password: process.env.ADMIN_PASSWORD,
+        user_phone_number: process.env.ADMIN_PHONE_NUMBER,
+        user_first_name: process.env.ADMIN_FIRST_NAME,
+        user_last_name: process.env.ADMIN_LAST_NAME,
+        user_address: process.env.ADMIN_ADDRESS,
+        user_email: process.env.ADMIN_EMAIL,
+        user_tel: process.env.ADMIN_TEL,
+      });
+      return user.result;
+    } else {
+      const user = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
+      return user[0];
+    }
   }
 
   async resetPassword(updateDto: ResetPasswordDto, user: IUserAuth) {
