@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { EventPattern, MessagePattern, Transport } from '@nestjs/microservices';
+import { MessagePattern, Transport } from '@nestjs/microservices';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReqUser } from 'src/common/decorators/req-user.decorator';
 import { JwtGuard } from '../auth/jwt/jwt.guard';

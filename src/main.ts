@@ -4,9 +4,10 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { MikroORM } from '@mikro-orm/core';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
 import { CustomExceptionFilter } from './common/filters/customExceptionFilter';
 import { Transport } from '@nestjs/microservices';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const PORT = process.env.PORT;
@@ -21,6 +22,9 @@ async function bootstrap() {
   await app.get(MikroORM).getMigrator().up();
   await app.get(MikroORM).getSchemaGenerator().ensureDatabase();
   await app.get(MikroORM).getSchemaGenerator().updateSchema();
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    RequestContext.create(app.get(MikroORM).em, next);
+  });
 
   const config = new DocumentBuilder().setTitle('Auth-System').addBearerAuth().setVersion('1.0.0').build();
   const document = SwaggerModule.createDocument(app, config);
