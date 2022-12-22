@@ -1,3 +1,4 @@
+import * as cors from 'cors';
 import * as path from 'path';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -13,6 +14,12 @@ async function bootstrap() {
   const PORT = process.env.PORT;
   const { MICROSERVICE_HOST, MICROSERVICE_PORT } = process.env;
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.use(
+    cors({
+      origin: ['http://localhost:4201', 'http://localhost:8081', 'http://localhost:3000'],
+      credentials: true,
+    }),
+  );
   app.useStaticAssets(path.join(process.cwd(), 'public'));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new CustomExceptionFilter());
