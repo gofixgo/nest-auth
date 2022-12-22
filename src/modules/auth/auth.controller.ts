@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReqUser } from 'src/common/decorators/req-user.decorator';
 import { AuthService } from './auth.service';
@@ -7,7 +7,7 @@ import { Request } from 'express';
 import { AuthLoginDto } from './dto/login.dto';
 import { JwtGuard } from './jwt/jwt.guard';
 import { ResetPasswordDto } from './dto/reset.dto';
-import { EventPattern, MessagePattern, Transport } from '@nestjs/microservices';
+import { MessagePattern, Transport } from '@nestjs/microservices';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -30,5 +30,12 @@ export class AuthController {
   @MessagePattern('auth/validate/token', { transport: Transport.REDIS })
   async validateToken(token: string) {
     return await this.service.validateToken(token);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
+  @Get('me')
+  async getMe(@ReqUser() user: IUserPayload) {
+    return user;
   }
 }
