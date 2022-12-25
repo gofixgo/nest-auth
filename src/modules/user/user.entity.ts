@@ -1,4 +1,4 @@
-import { Collection, EntityRepositoryType, ManyToOne, PrimaryKey, t } from '@mikro-orm/core';
+import { Collection, EntityRepositoryType, ManyToOne, OneToMany, PrimaryKey, t } from '@mikro-orm/core';
 import { Entity, Property } from '@mikro-orm/core';
 import { UserRepository } from './user.repository';
 import { v4 } from 'uuid';
@@ -17,7 +17,8 @@ export class User {
   @Property() user_tel?: string;
   @Property({ type: 'boolean', default: false }) user_deleted: boolean;
   @Property({ type: 'datetime', defaultRaw: 'NOW()' }) user_created_at: Date;
-  @Property({ type: 'datetime', defaultRaw: 'NOW()' }) user_deleted_at?: Date;
-  @Property({ type: 'datetime', defaultRaw: 'NOW()' }) user_updated_at?: Date;
-  @ManyToOne(() => User, { nullable: true, name: 'user_contacts_ids' }) user_contacts = new Collection<User>(this);
+  @Property({ type: 'datetime' }) user_deleted_at?: Date;
+  @Property({ type: 'datetime' }) user_updated_at?: Date;
+  @ManyToOne(() => User, { nullable: true, name: 'user_parent_id' }) user_parent: User;
+  @OneToMany(() => User, 'user_parent', { nullable: true, name: 'user_children_ids' }) user_children = new Collection<User>(this);
 }

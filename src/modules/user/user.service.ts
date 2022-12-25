@@ -28,16 +28,17 @@ export class UserService {
     };
   }
 
-  async getMany(filters: FilterUserDto, user: IUserAuth): Promise<ServiceReturnType<User[]>> {
-    const qb = this.em.createQueryBuilder(User);
+  async getMany(filters: FilterUserDto, user?: IUserAuth): Promise<ServiceReturnType<User[]>> {
+    const qb = this.em.fork().createQueryBuilder(User);
     const where = clean<QBFilterQuery<User>>({
       user_tel: filters.tel,
       user_email: filters.email,
       user_address: filters.address,
       user_username: filters.username,
-      user_last_name: filters.user_last_name,
-      user_first_name: filters.user_first_name,
+      user_last_name: filters.last_name,
+      user_first_name: filters.first_name,
       user_phone_number: filters.phone_number,
+      user_parent: { user_id: filters.parent_id },
       user_deleted: false,
     });
     const result = await qb.select(USER_SELECT_ALL).where(where).execute();
@@ -48,7 +49,7 @@ export class UserService {
   }
 
   async getOneById(id: string, user: IUserAuth): Promise<ServiceReturnType<User>> {
-    const qb = this.em.createQueryBuilder(User);
+    const qb = this.em.fork().createQueryBuilder(User);
     const result = await qb.select(USER_SELECT_ALL).where({ user_id: id, user_deleted: false }).execute();
     return {
       result: result[0],
@@ -57,7 +58,7 @@ export class UserService {
   }
 
   async getOneByUsername(username: string, user?: IUserAuth): Promise<ServiceReturnType<User>> {
-    const qb = this.em.createQueryBuilder(User);
+    const qb = this.em.fork().createQueryBuilder(User);
     const result = await qb.select(USER_SELECT_ALL).where({ user_username: username, user_deleted: false }).execute();
     return {
       result: result[0],
@@ -66,7 +67,7 @@ export class UserService {
   }
 
   async deleteOneById(id: string, user: IUserAuth): Promise<ServiceReturnType> {
-    const qb = this.em.createQueryBuilder(User);
+    const qb = this.em.fork().createQueryBuilder(User);
     await qb.delete().where({ user_id: id, user_deleted: false }).execute();
     return {
       status: HttpStatus.OK,
@@ -74,14 +75,14 @@ export class UserService {
   }
 
   async deleteMany(filters: FilterUserDto, user: IUserAuth): Promise<ServiceReturnType> {
-    const qb = this.em.createQueryBuilder(User);
+    const qb = this.em.fork().createQueryBuilder(User);
     const where = clean<QBFilterQuery<User>>({
       user_tel: filters.tel,
       user_email: filters.email,
       user_address: filters.address,
       user_username: filters.username,
-      user_last_name: filters.user_last_name,
-      user_first_name: filters.user_first_name,
+      user_last_name: filters.last_name,
+      user_first_name: filters.first_name,
       user_phone_number: filters.phone_number,
       user_deleted: false,
     });
@@ -92,7 +93,7 @@ export class UserService {
   }
 
   async softDeleteOneById(id: string, user: IUserAuth): Promise<ServiceReturnType> {
-    const qb = this.em.createQueryBuilder(User);
+    const qb = this.em.fork().createQueryBuilder(User);
     await qb.update({ user_deleted: true, user_deleted_at: new Date() }).where({ user_id: id, user_deleted: false }).execute();
     return {
       status: HttpStatus.OK,
@@ -100,7 +101,7 @@ export class UserService {
   }
 
   async updateOneById(id: string, data: UpdateUserDto, user: IUserAuth): Promise<ServiceReturnType<User>> {
-    const qb = this.em.createQueryBuilder(User);
+    const qb = this.em.fork().createQueryBuilder(User);
     const result = await qb
       .update({ ...data, user_updated_at: new Date() })
       .where({ user_id: id, user_deleted: false })
@@ -113,14 +114,14 @@ export class UserService {
   }
 
   async updateMany(filters: FilterUserDto, data: UpdateUserDto, user: IUserAuth): Promise<ServiceReturnType<User[]>> {
-    const qb = this.em.createQueryBuilder(User);
+    const qb = this.em.fork().createQueryBuilder(User);
     const where = clean<QBFilterQuery<User>>({
       user_tel: filters.tel,
       user_email: filters.email,
       user_address: filters.address,
       user_username: filters.username,
-      user_last_name: filters.user_last_name,
-      user_first_name: filters.user_first_name,
+      user_last_name: filters.last_name,
+      user_first_name: filters.first_name,
       user_phone_number: filters.phone_number,
       user_deleted: false,
     });
