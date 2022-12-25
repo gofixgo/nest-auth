@@ -2,6 +2,7 @@ import { clean } from '@common/helpers/clean.helper';
 import { QBFilterQuery } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConnectUserDto, DisconnectUserDto } from './dto/connect.dto';
 import { CreateUserDto } from './dto/create.dto';
 import { FilterUserDto } from './dto/filter.dto';
 import { UpdateUserDto } from './dto/update.dto';
@@ -16,13 +17,41 @@ export class UserService {
 
   async create(data: CreateUserDto, user?: IUserAuth) {
     if (!data.user_username) data.user_username = data.user_phone_number;
+    const repo = this.em.fork().getRepository(User);
     data.user_password = this.helper.hashPassword(data.user_password);
-    const createdUser = this.repo.create(data);
-    this.repo.persist(createdUser);
-    await this.repo.flush();
-    const result = await this.repo.findOne(createdUser);
+    const createdUser = repo.create(data);
+    repo.persist(createdUser);
+    await repo.flush();
     return {
-      result: result,
+      result: createdUser,
+      status: HttpStatus.CREATED,
+      message: 'کاربر جدید با موفقیت ثبت شد.',
+    };
+  }
+
+  async connect(data: ConnectUserDto, user: IUserAuth) {
+    const found_user = await this.repo.findOne({ user_id: user.user_id });
+    const found_users_children = await this.repo.find({ user_children: data.user_children_ids.map((id) => ({ user_id: id })) });
+    found_users_children.forEach((u) => {
+      u.user_parent = found_user;
+    });
+    found_user.user_children.add(found_users_children);
+    await this.repo.persist(found_user).flush();
+    return {
+      status: HttpStatus.CREATED,
+      message: 'کاربر جدید با موفقیت ثبت شد.',
+    };
+  }
+
+  async disconnect(data: DisconnectUserDto, user?: IUserAuth) {
+    const found_user = await this.repo.findOne({ user_id: user.user_id });
+    const found_users_children = await this.repo.find({ user_children: data.user_children_ids.map((id) => ({ user_id: id })) });
+    found_users_children.forEach((u) => {
+      u.user_parent = null;
+    });
+    found_user.user_children.remove(found_users_children);
+    await this.repo.persist(found_user).flush();
+    return {
       status: HttpStatus.CREATED,
       message: 'کاربر جدید با موفقیت ثبت شد.',
     };
