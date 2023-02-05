@@ -69,9 +69,14 @@ export class AuthService {
     }
   }
 
-  async getMe(user: IUserPayload): Promise<any> {
+  async getRules(user: IUserPayload) {
     const rules = await lastValueFrom(this.client.send('casl.rules.find.many', { roles_ids: user.role_ids }));
-    return { ...user, user_rules: rules.result };
+    return rules.result;
+  }
+
+  async getMe(user: IUserPayload): Promise<any> {
+    const rules = await this.getRules(user);
+    return { ...user, user_rules: rules };
   }
 
   async getSuperAdminRole(): Promise<{ role_id: string; role_name: string; role_name_fa: string }> {

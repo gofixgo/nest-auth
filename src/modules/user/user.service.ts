@@ -5,7 +5,6 @@ import { ConnectUserDto, DisconnectUserDto } from './dto/connect.dto';
 import { CreateUserDto } from './dto/create.dto';
 import { FilterUserDto } from './dto/filter.dto';
 import { UpdateUserDto } from './dto/update.dto';
-import { USER_SELECT_ALL } from './user.constant';
 import { User } from './user.entity';
 import { UserHelper } from './user.helper';
 import { UserRepository } from './user.repository';
@@ -72,6 +71,7 @@ export class UserService {
       user_first_name: filters.first_name,
       user_phone_number: filters.phone_number,
       user_parent: { user_id: filters.parent_id },
+      // user_role_ids: {},
       user_deleted: false,
     });
     const result = await qb.select('*').where(where).execute();

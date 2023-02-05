@@ -17,7 +17,9 @@ export class AuthController {
   @UseGuards(LocalGuard)
   @Post('login')
   async login(@Body() data: AuthLoginDto, @Req() { user: payload }: Request) {
-    return payload;
+    const typedUserPayload = payload as IUserPayload;
+    const rules = await this.service.getRules(typedUserPayload);
+    return { ...payload, rules };
   }
 
   @UseGuards(JwtGuard)
