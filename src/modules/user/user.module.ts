@@ -7,7 +7,7 @@ import { UserHelper } from './user.helper';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 
 export const CASL_TOKEN = 'CASL_TOKEN';
-const CASL_PROVIDER: Provider = {
+export const CASL_PROVIDER: Provider = {
   provide: CASL_TOKEN,
   useFactory: () => {
     const { CASL_MICROSERVICE_HOST, CASL_MICROSERVICE_PORT } = process.env;
