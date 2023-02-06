@@ -1,7 +1,9 @@
+import { v4 } from 'uuid';
 import { Collection, EntityRepositoryType, ManyToOne, OneToMany, PrimaryKey, t } from '@mikro-orm/core';
 import { Entity, Property } from '@mikro-orm/core';
 import { UserRepository } from './user.repository';
-import { v4 } from 'uuid';
+import { IsNotEmptyObject, IsString } from 'class-validator';
+import { Device } from '../device/entities/device.entity';
 
 @Entity({ customRepository: () => UserRepository })
 export class User {
@@ -15,8 +17,8 @@ export class User {
   @Property({ hidden: true }) user_password: string;
   @Property({ unique: true }) user_email?: string;
   @Property({ unique: true }) user_phone_number: string;
-  @Property({ type: 'uuid', nullable: false }) user_role_id: string;
-  @Property({ type: 'uuid', nullable: true }) user_device_id?: string;
+  @IsNotEmptyObject({ nullable: false }) @IsString({ each: true }) @Property({ type: 'array', nullable: false }) user_role_ids: string[];
+  @OneToMany(() => Device, 'device_user', { name: 'user_devices_ids', nullable: true }) user_devices? = new Collection<Device>(this);
   @Property({ type: 'boolean', default: false }) user_deleted: boolean;
   @Property({ type: 'datetime', defaultRaw: 'NOW()' }) user_created_at: Date;
   @Property({ type: 'datetime' }) user_deleted_at?: Date;

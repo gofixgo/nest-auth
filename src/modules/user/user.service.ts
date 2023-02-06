@@ -134,7 +134,7 @@ export class UserService {
     const result = await qb
       .update({ ...data, user_updated_at: new Date() })
       .where({ user_id: id, user_deleted: false })
-      .select(USER_SELECT_ALL)
+      .select('*')
       .execute();
     return {
       result: result[0],
@@ -147,6 +147,7 @@ export class UserService {
     const where = clean<QBFilterQuery<User>>({
       user_tel: filters.tel,
       user_email: filters.email,
+      user_role_ids: { $contains: filters.role_id },
       user_address: filters.address,
       user_username: filters.username,
       user_last_name: filters.last_name,
@@ -154,7 +155,7 @@ export class UserService {
       user_phone_number: filters.phone_number,
       user_deleted: false,
     });
-    const result = await qb.update(data).where(where).select(USER_SELECT_ALL).execute();
+    const result = await qb.update(data).where(where).select('*').execute();
     return {
       result,
       status: HttpStatus.OK,

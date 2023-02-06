@@ -22,9 +22,9 @@ export class AuthService {
     const qb = this.em.fork().createQueryBuilder(User);
     const users_count = await qb.clone().getCount();
     if (users_count === 0) {
-      const role = await this.getSuperAdminRole();
+      const superAdminRole = await this.getSuperAdminRole();
       const user = await this.userService.create({
-        user_role_id: role.role_id,
+        user_role_ids: [superAdminRole.role_id],
         user_username: process.env.ADMIN_USERNAME,
         user_password: process.env.ADMIN_PASSWORD,
         user_phone_number: process.env.ADMIN_PHONE_NUMBER,

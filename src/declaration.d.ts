@@ -2,7 +2,7 @@ type IUserPayload = {
   id: string;
   email: string;
   username: string;
-  role_id: string;
+  role_ids: string[];
   device_id?: string;
   phone_number: string;
   first_name: string;
