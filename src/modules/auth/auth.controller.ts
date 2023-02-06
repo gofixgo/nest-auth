@@ -36,6 +36,6 @@ export class AuthController {
   @UseGuards(JwtGuard)
   @Get('me')
   async getMe(@ReqUser() user: IUserPayload) {
-    return user;
+    return await this.service.getMe(user);
   }
 }

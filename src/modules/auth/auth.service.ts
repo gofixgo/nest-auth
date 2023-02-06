@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CASL_TOKEN } from '../user/user.module';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
+import { clean } from '@common/helpers/clean.helper';
 
 @Injectable()
 export class AuthService {
@@ -23,17 +24,19 @@ export class AuthService {
     const users_count = await qb.clone().getCount();
     if (users_count === 0) {
       const superAdminRole = await this.getSuperAdminRole();
-      const user = await this.userService.create({
-        user_role_ids: [superAdminRole.role_id],
-        user_username: process.env.ADMIN_USERNAME,
-        user_password: process.env.ADMIN_PASSWORD,
-        user_phone_number: process.env.ADMIN_PHONE_NUMBER,
-        user_first_name: process.env.ADMIN_FIRST_NAME,
-        user_last_name: process.env.ADMIN_LAST_NAME,
-        user_address: process.env.ADMIN_ADDRESS,
-        user_email: process.env.ADMIN_EMAIL,
-        user_tel: process.env.ADMIN_TEL,
-      });
+      const user = await this.userService.create(
+        clean({
+          user_role_ids: [superAdminRole.role_id],
+          user_username: process.env.ADMIN_USERNAME,
+          user_password: process.env.ADMIN_PASSWORD,
+          user_phone_number: process.env.ADMIN_PHONE_NUMBER,
+          user_first_name: process.env.ADMIN_FIRST_NAME,
+          user_last_name: process.env.ADMIN_LAST_NAME,
+          user_address: process.env.ADMIN_ADDRESS,
+          user_email: process.env.ADMIN_EMAIL,
+          user_tel: process.env.ADMIN_TEL,
+        }),
+      );
       return user.result;
     } else {
       const user = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
@@ -64,6 +67,11 @@ export class AuthService {
       if (/invalid\s*token/.test(e.message)) throw new InternalServerErrorException('invalid-token');
       else throw new InternalServerErrorException();
     }
+  }
+
+  async getMe(user: IUserPayload): Promise<any> {
+    const rules = await lastValueFrom(this.client.send('casl.rules.find.many', { roles_ids: user.role_ids }));
+    return { ...user, user_rules: rules.result };
   }
 
   async getSuperAdminRole(): Promise<{ role_id: string; role_name: string; role_name_fa: string }> {

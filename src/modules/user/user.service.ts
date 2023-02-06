@@ -1,7 +1,6 @@
-import { clean } from '@common/helpers/clean.helper';
-import { QBFilterQuery } from '@mikro-orm/core';
+import { QBFilterQuery, UniqueConstraintViolationException, wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConnectUserDto, DisconnectUserDto } from './dto/connect.dto';
 import { CreateUserDto } from './dto/create.dto';
 import { FilterUserDto } from './dto/filter.dto';
@@ -10,6 +9,7 @@ import { USER_SELECT_ALL } from './user.constant';
 import { User } from './user.entity';
 import { UserHelper } from './user.helper';
 import { UserRepository } from './user.repository';
+import { clean } from '@common/helpers/clean.helper';
 
 @Injectable()
 export class UserService {
@@ -19,14 +19,18 @@ export class UserService {
     if (!data.user_username) data.user_username = data.user_phone_number;
     const repo = this.em.fork().getRepository(User);
     data.user_password = this.helper.hashPassword(data.user_password);
-    const createdUser = repo.create(data);
-    repo.persist(createdUser);
-    await repo.flush();
-    return {
-      result: createdUser,
-      status: HttpStatus.CREATED,
-      message: 'کاربر جدید با موفقیت ثبت شد.',
-    };
+    try {
+      const createdUser = repo.create(clean(data));
+      repo.persist(createdUser);
+      await repo.flush();
+      return {
+        result: wrap(createdUser).toObject(),
+        status: HttpStatus.CREATED,
+        message: 'کاربر جدید با موفقیت ثبت شد.',
+      };
+    } catch (e) {
+      if (e instanceof UniqueConstraintViolationException) throw new ConflictException('کاربر با مشخصات وارد شده قبلا ثبت شده است.');
+    }
   }
 
   async connect(data: ConnectUserDto, user: IUserAuth) {
@@ -70,27 +74,31 @@ export class UserService {
       user_parent: { user_id: filters.parent_id },
       user_deleted: false,
     });
-    const result = await qb.select(USER_SELECT_ALL).where(where).execute();
+    const result = await qb.select('*').where(where).execute();
     return {
-      result,
+      result: result.map((s) => ({ ...s, user_password: undefined })),
       status: HttpStatus.OK,
     };
   }
 
   async getOneById(id: string, user: IUserAuth): Promise<ServiceReturnType<User>> {
     const qb = this.em.fork().createQueryBuilder(User);
-    const result = await qb.select(USER_SELECT_ALL).where({ user_id: id, user_deleted: false }).execute();
+    const [result] = await qb.select('*').where({ user_id: id, user_deleted: false }).execute();
+    if (!result) throw new NotFoundException('کاربر با آیدی وارد شده یافت نشد.');
+    delete result.user_password;
     return {
-      result: result[0],
+      result,
       status: HttpStatus.CREATED,
     };
   }
 
   async getOneByUsername(username: string, user?: IUserAuth): Promise<ServiceReturnType<User>> {
     const qb = this.em.fork().createQueryBuilder(User);
-    const result = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
+    const [result] = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
+    if (!result) throw new NotFoundException('کاربر با آیدی وارد شده یافت نشد.');
+    delete result.user_password;
     return {
-      result: result[0],
+      result,
       status: HttpStatus.CREATED,
     };
   }
@@ -131,15 +139,19 @@ export class UserService {
 
   async updateOneById(id: string, data: UpdateUserDto, user: IUserAuth): Promise<ServiceReturnType<User>> {
     const qb = this.em.fork().createQueryBuilder(User);
-    const result = await qb
-      .update({ ...data, user_updated_at: new Date() })
-      .where({ user_id: id, user_deleted: false })
-      .select('*')
-      .execute();
-    return {
-      result: result[0],
-      status: HttpStatus.OK,
-    };
+    try {
+      const result = await qb
+        .update({ ...data, user_updated_at: new Date() })
+        .where({ user_id: id, user_deleted: false })
+        .select('*')
+        .execute();
+      return {
+        result: result[0],
+        status: HttpStatus.OK,
+      };
+    } catch (e) {
+      if (e instanceof UniqueConstraintViolationException) throw new ConflictException('کاربر با مشخصات وارد شده قبلا ثبت شده است.');
+    }
   }
 
   async updateMany(filters: FilterUserDto, data: UpdateUserDto, user: IUserAuth): Promise<ServiceReturnType<User[]>> {
@@ -155,10 +167,14 @@ export class UserService {
       user_phone_number: filters.phone_number,
       user_deleted: false,
     });
-    const result = await qb.update(data).where(where).select('*').execute();
-    return {
-      result,
-      status: HttpStatus.OK,
-    };
+    try {
+      const result = await qb.update(data).where(where).select('*').execute();
+      return {
+        result,
+        status: HttpStatus.OK,
+      };
+    } catch (e) {
+      if (e instanceof UniqueConstraintViolationException) throw new ConflictException('کاربر با مشخصات وارد شده قبلا ثبت شده است.');
+    }
   }
 }
