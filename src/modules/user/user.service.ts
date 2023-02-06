@@ -88,7 +88,7 @@ export class UserService {
 
   async getOneByUsername(username: string, user?: IUserAuth): Promise<ServiceReturnType<User>> {
     const qb = this.em.fork().createQueryBuilder(User);
-    const result = await qb.select(USER_SELECT_ALL).where({ user_username: username, user_deleted: false }).execute();
+    const result = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
     return {
       result: result[0],
       status: HttpStatus.CREATED,

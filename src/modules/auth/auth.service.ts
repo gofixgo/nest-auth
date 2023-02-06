@@ -1,20 +1,30 @@
 import * as bcrypt from 'bcryptjs';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { ResetPasswordDto } from './dto/reset.dto';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
+import { CASL_TOKEN } from '../user/user.module';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService, private readonly jwtService: JwtService, private readonly em: EntityManager) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+    private readonly em: EntityManager,
+    @Inject(CASL_TOKEN) private readonly client: ClientProxy,
+  ) {}
 
   async getOneByUsername(username: string) {
     const qb = this.em.fork().createQueryBuilder(User);
     const users_count = await qb.clone().getCount();
     if (users_count === 0) {
+      const role = await this.getSuperAdminRole();
       const user = await this.userService.create({
+        user_role_id: role.role_id,
         user_username: process.env.ADMIN_USERNAME,
         user_password: process.env.ADMIN_PASSWORD,
         user_phone_number: process.env.ADMIN_PHONE_NUMBER,
@@ -53,6 +63,16 @@ export class AuthService {
     } catch (e) {
       if (/invalid\s*token/.test(e.message)) throw new InternalServerErrorException('invalid-token');
       else throw new InternalServerErrorException();
+    }
+  }
+
+  async getSuperAdminRole(): Promise<{ role_id: string; role_name: string; role_name_fa: string }> {
+    try {
+      const role = await lastValueFrom(this.client.send('role.find.one.name', 'SUPER_ADMIN'));
+      if (!role) throw new NotFoundException('نقش سوپر ادمین یافت نشد.');
+      return role.result;
+    } catch (e) {
+      throw new InternalServerErrorException('خطایی در پیدا کردن نقش سوپر ادمین رخ داد.');
     }
   }
 }

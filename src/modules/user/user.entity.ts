@@ -15,8 +15,8 @@ export class User {
   @Property({ hidden: true }) user_password: string;
   @Property({ unique: true }) user_email?: string;
   @Property({ unique: true }) user_phone_number: string;
-  // @Property({ type: 'uuid', nullable: false }) user_role_id: string;
-  // @Property({ type: 'uuid', nullable: true }) user_device_id?: string;
+  @Property({ type: 'uuid', nullable: false }) user_role_id: string;
+  @Property({ type: 'uuid', nullable: true }) user_device_id?: string;
   @Property({ type: 'boolean', default: false }) user_deleted: boolean;
   @Property({ type: 'datetime', defaultRaw: 'NOW()' }) user_created_at: Date;
   @Property({ type: 'datetime' }) user_deleted_at?: Date;
