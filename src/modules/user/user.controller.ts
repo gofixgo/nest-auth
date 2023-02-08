@@ -5,7 +5,7 @@ import { Action } from 'src/common/decorators/action-metadata.decorator';
 import { ReqUser } from 'src/common/decorators/req-user.decorator';
 import { Subject } from 'src/common/decorators/subject-metadata.decorator';
 import { JwtGuard } from '../auth/jwt/jwt.guard';
-// import { CaslGuard } from '../casl/casl.guard';
+import { CaslGuard } from '../casl/casl.guard';
 import { CreateUserDto } from './dto/create.dto';
 import { FilterUserDto } from './dto/filter.dto';
 import { UpdateUserDto } from './dto/update.dto';
@@ -34,7 +34,7 @@ export class UserController {
 
   @Action('READ')
   @Subject(USERS_SUBJECT)
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, CaslGuard)
   @Get()
   async getMany(@Query() filters: FilterUserDto, @ReqUser() user: IUserAuth) {
     return await this.service.getMany(filters, user);

@@ -5,10 +5,10 @@ import { User } from '../user/user.entity';
 import { ResetPasswordDto } from './dto/reset.dto';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { CASL_TOKEN } from '../user/user.module';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
 import { clean } from '@common/helpers/clean.helper';
+import { CASL_TOKEN } from '../casl/casl.module';
 
 @Injectable()
 export class AuthService {
