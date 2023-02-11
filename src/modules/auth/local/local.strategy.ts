@@ -18,17 +18,17 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('نام کاربری یا رمز عبور نادرست است.');
     }
     const payload: IUserPayload = {
-      id: user.user_id,
-      email: user.user_email,
-      role_ids: user.user_role_ids,
-      username: user.user_username,
-      password: user.user_password,
-      last_name: user.user_last_name,
-      first_name: user.user_first_name,
-      phone_number: user.user_phone_number,
+      user_id: user.user_id,
+      user_email: user.user_email,
+      user_roles: user.user_role_ids as any[],
+      user_username: user.user_username,
+      user_password: user.user_password,
+      user_last_name: user.user_last_name,
+      user_first_name: user.user_first_name,
+      user_phone_number: user.user_phone_number,
     };
     const token = this.jwt.sign(payload, { expiresIn, secret: process.env.JWT_SECRET });
-    delete payload.password;
-    return { ...payload, token };
+    delete payload.user_password;
+    return { ...payload, user_token: token };
   }
 }

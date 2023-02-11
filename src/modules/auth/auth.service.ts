@@ -39,8 +39,13 @@ export class AuthService {
       );
       return user.result;
     } else {
-      const user = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
-      return user[0];
+      const [user] = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
+      if (!user) throw new NotFoundException('لطفا دوباره وارد شوید.');
+      const userRolesObs = this.client.send('role.find.many', { ids: user.user_role_ids });
+      const foundUserRoles = await lastValueFrom(userRolesObs);
+      if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
+      user.user_role_ids = foundUserRoles?.result;
+      return user;
     }
   }
 
@@ -70,7 +75,7 @@ export class AuthService {
   }
 
   async getRules(user: IUserPayload) {
-    const rules = await lastValueFrom(this.client.send('casl.rules.find.many', { roles_ids: user.role_ids }));
+    const rules = await lastValueFrom(this.client.send('casl.rules.find.many', { roles_ids: user.user_roles?.map((s) => s.role_id) }));
     return rules.result;
   }
 

@@ -1,13 +1,17 @@
+type Role = {
+  role_id: string;
+  role_name: string;
+  role_name_fa: string;
+};
 type IUserPayload = {
-  id: string;
-  email: string;
-  username: string;
-  role_ids: string[];
-  device_id?: string;
-  phone_number: string;
-  first_name: string;
-  last_name: string;
-  password: string;
+  user_id: string;
+  user_email: string;
+  user_username: string;
+  user_roles: Role[];
+  user_phone_number: string;
+  user_first_name: string;
+  user_last_name: string;
+  user_password: string;
 };
 
 type IUserAuth = Omit<import('./modules/user/user.entity').User, 'user_password'>;

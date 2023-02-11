@@ -19,7 +19,7 @@ export class AuthController {
   async login(@Body() data: AuthLoginDto, @Req() { user: payload }: Request) {
     const typedUserPayload = payload as IUserPayload;
     const rules = await this.service.getRules(typedUserPayload);
-    return { ...payload, rules };
+    return { ...payload, user_rules: rules };
   }
 
   @UseGuards(JwtGuard)

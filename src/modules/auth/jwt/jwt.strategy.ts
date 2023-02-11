@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: IUserPayload & { token: string }): Promise<Omit<User | EntityDTO<User>, 'password'>> {
-    const user = await this.authService.getOneByUsername(payload.username);
+    const user = await this.authService.getOneByUsername(payload.user_username);
     if (!user) throw new UnauthorizedException('لطفا دوباره وارد شوید.');
     delete user.user_password;
     return user;
