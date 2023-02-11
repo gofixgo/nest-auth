@@ -14,7 +14,7 @@ type IUserPayload = {
   user_password: string;
 };
 
-type IUserAuth = Omit<import('./modules/user/user.entity').User, 'user_password'>;
+type IUserAuth = Omit<import('./modules/user/user.entity').User, 'user_role_ids' | 'user_password'> & { user_role_ids: Role[] };
 
 type PaginationDto = {
   total_items: number;

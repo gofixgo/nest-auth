@@ -19,7 +19,7 @@ const USERS_SUBJECT = 'AUTH_USERS';
 export class UserController {
   constructor(private readonly service: UserService) {}
 
-  @Action('CREATE')
+  @Action(['CREATE'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard)
   @Post()
@@ -32,7 +32,7 @@ export class UserController {
     return await this.service.getMany(filters);
   }
 
-  @Action('READ')
+  @Action(['READ'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard, CaslGuard)
   @Get()
@@ -40,7 +40,7 @@ export class UserController {
     return await this.service.getMany(filters, user);
   }
 
-  @Action('READ')
+  @Action(['READ'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard)
   @Get(':id')
@@ -48,7 +48,7 @@ export class UserController {
     return await this.service.getOneById(id, user);
   }
 
-  @Action('READ')
+  @Action(['READ'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard)
   @Get(':username/username')
@@ -61,7 +61,7 @@ export class UserController {
     return await this.service.getOneByUsername(username);
   }
 
-  @Action('UPDATE')
+  @Action(['UPDATE'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard)
   @Put(':id')
@@ -69,7 +69,7 @@ export class UserController {
     return await this.service.updateOneById(id, data, user);
   }
 
-  @Action('UPDATE')
+  @Action(['UPDATE'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard)
   @Put()
@@ -77,7 +77,7 @@ export class UserController {
     return await this.service.updateMany(filters, data, user);
   }
 
-  @Action('DELETE')
+  @Action(['DELETE'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard)
   @Delete(':id')
@@ -85,7 +85,7 @@ export class UserController {
     return await this.service.deleteOneById(id, user);
   }
 
-  @Action('DELETE')
+  @Action(['DELETE'])
   @Subject(USERS_SUBJECT)
   @UseGuards(JwtGuard)
   @Delete()

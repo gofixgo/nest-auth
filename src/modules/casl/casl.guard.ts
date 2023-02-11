@@ -13,12 +13,17 @@ export class CaslGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     const req = context.switchToHttp().getRequest<Request>();
-    const user = req.user;
+    const user = req.user as IUserAuth;
     const data = { ...(req.body ?? {}), ...(req.query ?? {}), ...(req.params ?? {}) };
     const subject = this.reflector.get<string>(SUBJECT_METADATA, context.getHandler());
-    const action = this.reflector.get<string>(ACTION_METADATA, context.getHandler());
+    const actions = this.reflector.get<string[]>(ACTION_METADATA, context.getHandler());
     try {
-      const canActivate = this.client.send('casl.guard.canActivate', { subject, action, data, user });
+      const canActivate = this.client.send('casl.guard.canActivate', {
+        subject,
+        actions,
+        data,
+        user: { ...user, user_role_ids: user.user_role_ids.map((s) => s.role_id) },
+      });
       const result = await lastValueFrom(canActivate);
       if (result.hasAccess) return true;
       else throw new ForbiddenException(result.message);
