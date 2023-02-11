@@ -1,6 +1,6 @@
 import { QBFilterQuery, UniqueConstraintViolationException, wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConnectUserDto, DisconnectUserDto } from './dto/connect.dto';
 import { CreateUserDto } from './dto/create.dto';
 import { FilterUserDto } from './dto/filter.dto';
@@ -9,6 +9,7 @@ import { User } from './user.entity';
 import { UserHelper } from './user.helper';
 import { UserRepository } from './user.repository';
 import { clean } from '@common/helpers/clean.helper';
+import cleanDeep from 'clean-deep';
 
 @Injectable()
 export class UserService {
@@ -138,19 +139,18 @@ export class UserService {
   }
 
   async updateOneById(id: string, data: UpdateUserDto, user: IUserAuth): Promise<ServiceReturnType<User>> {
-    const qb = this.em.fork().createQueryBuilder(User);
+    data.user_password = data.user_password ? this.helper.hashPassword(data.user_password) : undefined;
     try {
-      const result = await qb
-        .update({ ...data, user_updated_at: new Date() })
-        .where({ user_id: id, user_deleted: false })
-        .select('*')
-        .execute();
+      console.log('UPDATING');
+      await this.em.fork().nativeUpdate(User, { user_id: id }, cleanDeep({ ...data, user_updated_at: new Date() }));
+      const result = await this.em.fork().findOne(User, { user_id: id });
       return {
-        result: result[0],
+        result,
         status: HttpStatus.OK,
       };
     } catch (e) {
       if (e instanceof UniqueConstraintViolationException) throw new ConflictException('کاربر با مشخصات وارد شده قبلا ثبت شده است.');
+      else throw new InternalServerErrorException(e);
     }
   }
 
