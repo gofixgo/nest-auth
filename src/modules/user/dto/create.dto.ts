@@ -34,7 +34,7 @@ export class CreateUserDto {
   @ApiProperty({ required: true })
   @IsOptional()
   @IsString()
-  @Matches(/\d+/, {
+  @Matches(/\d*/, {
     message: 'فرمت وارد شده برای شماره همراه صحیح نمی باشد. (فرمت صحیح: 05131235465)',
   })
   user_tel?: string;

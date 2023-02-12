@@ -1,4 +1,4 @@
-import { QBFilterQuery, UniqueConstraintViolationException, wrap } from '@mikro-orm/core';
+import { QBFilterQuery, serialize, UniqueConstraintViolationException, wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { ConflictException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConnectUserDto, DisconnectUserDto } from './dto/connect.dto';
@@ -9,13 +9,14 @@ import { User } from './user.entity';
 import { UserHelper } from './user.helper';
 import { UserRepository } from './user.repository';
 import { clean } from '@common/helpers/clean.helper';
-import cleanDeep from 'clean-deep';
+import * as cleanDeep from 'clean-deep';
 
 @Injectable()
 export class UserService {
   constructor(private readonly repo: UserRepository, private readonly em: EntityManager, private readonly helper: UserHelper) {}
 
   async create(data: CreateUserDto, user?: IUserAuth) {
+    await this.helper.canCreate(data, user);
     if (!data.user_username) data.user_username = data.user_phone_number;
     const repo = this.em.fork().getRepository(User);
     data.user_password = this.helper.hashPassword(data.user_password);
@@ -138,16 +139,13 @@ export class UserService {
     };
   }
 
-  async updateOneById(id: string, data: UpdateUserDto, user: IUserAuth): Promise<ServiceReturnType<User>> {
+  async updateOneById(id: string, data: UpdateUserDto, user: IUserAuth) {
+    await this.helper.canUpdate(id, data, user);
     data.user_password = data.user_password ? this.helper.hashPassword(data.user_password) : undefined;
     try {
-      console.log('UPDATING');
-      await this.em.fork().nativeUpdate(User, { user_id: id }, cleanDeep({ ...data, user_updated_at: new Date() }));
+      await this.em.fork().nativeUpdate(User, { user_id: id }, (cleanDeep as any)({ ...data, id: undefined, user_updated_at: new Date() }));
       const result = await this.em.fork().findOne(User, { user_id: id });
-      return {
-        result,
-        status: HttpStatus.OK,
-      };
+      return { result: serialize(result), status: HttpStatus.OK };
     } catch (e) {
       if (e instanceof UniqueConstraintViolationException) throw new ConflictException('کاربر با مشخصات وارد شده قبلا ثبت شده است.');
       else throw new InternalServerErrorException(e);
