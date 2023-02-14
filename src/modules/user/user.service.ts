@@ -64,21 +64,26 @@ export class UserService {
 
   async getMany(filters: FilterUserDto, user?: IUserAuth): Promise<ServiceReturnType<User[]>> {
     const qb = this.em.fork().createQueryBuilder(User);
-    const where = clean<QBFilterQuery<User>>({
-      user_tel: filters.tel,
-      user_email: filters.email,
-      user_address: filters.address,
-      user_username: filters.username,
-      user_last_name: filters.last_name,
-      user_first_name: filters.first_name,
-      user_phone_number: filters.phone_number,
-      user_parent: { user_id: filters.parent_id },
-      // user_role_ids: {},
-      user_deleted: false,
-    });
-    const result = await qb.select('*').where(where).execute();
+    const result = await qb
+      .select('*')
+      .where(
+        (cleanDeep as any)({
+          user_id: { $in: filters.ids },
+          user_tel: filters.tel,
+          user_email: filters.email,
+          user_address: filters.address,
+          user_username: filters.username,
+          user_last_name: filters.last_name,
+          user_first_name: filters.first_name,
+          user_phone_number: filters.phone_number,
+          user_parent: { user_id: filters.parent_id },
+          user_role_ids: { $contains: filters.roles_ids },
+          user_deleted: false,
+        }),
+      )
+      .execute();
     return {
-      result: result.map((s) => ({ ...s, user_password: undefined })),
+      result: await this.helper.serializeMany(result),
       status: HttpStatus.OK,
     };
   }
