@@ -44,7 +44,7 @@ export class AuthService {
       const userRolesObs = this.client.send('role.find.many', { ids: user.user_role_ids });
       const foundUserRoles = await lastValueFrom(userRolesObs);
       if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
-      user.user_role_ids = foundUserRoles?.result;
+      (user as any).user_roles = foundUserRoles?.result;
       return user;
     }
   }
@@ -75,7 +75,7 @@ export class AuthService {
   }
 
   async getRules(user: IUserPayload) {
-    const rules = await lastValueFrom(this.client.send('casl.rules.find.many', { roles_ids: user.user_roles?.map((s) => s.role_id) }));
+    const rules = await lastValueFrom(this.client.send('casl.rules.find.many', { roles_ids: user.user_role_ids }));
     return rules.result;
   }
 

@@ -18,12 +18,7 @@ export class CaslGuard implements CanActivate {
     const subject = this.reflector.get<string>(SUBJECT_METADATA, context.getHandler());
     const actions = this.reflector.get<string[]>(ACTION_METADATA, context.getHandler());
     try {
-      const canActivate = this.client.send('casl.guard.canActivate', {
-        subject,
-        actions,
-        data,
-        user: { ...user, user_role_ids: user.user_role_ids.map((s) => s.role_id) },
-      });
+      const canActivate = this.client.send('casl.guard.canActivate', { subject, actions, data, user });
       const result = await lastValueFrom(canActivate);
       if (result.hasAccess) return true;
       else throw new ForbiddenException(result.message);

@@ -8,6 +8,7 @@ type IUserPayload = {
   user_email: string;
   user_username: string;
   user_roles: Role[];
+  user_role_ids: string[];
   user_phone_number: string;
   user_first_name: string;
   user_last_name: string;
