@@ -45,6 +45,7 @@ export class AuthService {
       const foundUserRoles = await lastValueFrom(userRolesObs);
       if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
       (user as any).user_roles = foundUserRoles?.result;
+      (user as any).user_is_admin = (user as any).user_roles.some((r: Role) => r.role_name === 'SUPER_ADMIN');
       return user;
     }
   }

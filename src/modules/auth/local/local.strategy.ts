@@ -27,6 +27,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       user_last_name: user.user_last_name,
       user_first_name: user.user_first_name,
       user_phone_number: user.user_phone_number,
+      user_is_admin: (user as any).user_roles.some((r: Role) => r.role_name === 'SUPER_ADMIN'),
     };
     const token = this.jwt.sign(payload, { expiresIn, secret: process.env.JWT_SECRET });
     delete payload.user_password;

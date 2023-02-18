@@ -1,6 +1,7 @@
+import * as cleanDeep from 'clean-deep';
 import { QBFilterQuery, serialize, UniqueConstraintViolationException, wrap } from '@mikro-orm/core';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { ConflictException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpStatus, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConnectUserDto, DisconnectUserDto } from './dto/connect.dto';
 import { CreateUserDto } from './dto/create.dto';
 import { FilterUserDto } from './dto/filter.dto';
@@ -9,11 +10,18 @@ import { User } from './user.entity';
 import { UserHelper } from './user.helper';
 import { UserRepository } from './user.repository';
 import { clean } from '@common/helpers/clean.helper';
-import * as cleanDeep from 'clean-deep';
+import { lastValueFrom } from 'rxjs';
+import { ClientProxy } from '@nestjs/microservices';
+import { CASL_TOKEN } from '../casl/casl.module';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly repo: UserRepository, private readonly em: EntityManager, private readonly helper: UserHelper) {}
+  constructor(
+    private readonly repo: UserRepository,
+    private readonly em: EntityManager,
+    private readonly helper: UserHelper,
+    @Inject(CASL_TOKEN) private readonly client: ClientProxy,
+  ) {}
 
   async create(data: CreateUserDto, user?: IUserAuth) {
     await this.helper.canCreate(data, user);
@@ -93,10 +101,12 @@ export class UserService {
     const [result] = await qb.select('*').where({ user_id: id, user_deleted: false }).execute();
     if (!result) throw new NotFoundException('کاربر با آیدی وارد شده یافت نشد.');
     delete result.user_password;
-    return {
-      result,
-      status: HttpStatus.CREATED,
-    };
+    const userRolesObs = this.client.send('role.find.many', { ids: result.user_role_ids });
+    const foundUserRoles = await lastValueFrom(userRolesObs);
+    if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
+    (result as any).user_roles = foundUserRoles?.result;
+    (result as any).user_is_admin = (user as any).user_roles.some((r: Role) => r.role_name === 'SUPER_ADMIN');
+    return { result, status: HttpStatus.CREATED };
   }
 
   async getOneByUsername(username: string, user?: IUserAuth): Promise<ServiceReturnType<User>> {
@@ -104,18 +114,18 @@ export class UserService {
     const [result] = await qb.select('*').where({ user_username: username, user_deleted: false }).execute();
     if (!result) throw new NotFoundException('کاربر با آیدی وارد شده یافت نشد.');
     delete result.user_password;
-    return {
-      result,
-      status: HttpStatus.CREATED,
-    };
+    const userRolesObs = this.client.send('role.find.many', { ids: result.user_role_ids });
+    const foundUserRoles = await lastValueFrom(userRolesObs);
+    if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
+    (result as any).user_roles = foundUserRoles?.result;
+    (result as any).user_is_admin = (result as any).user_roles?.some((r: Role) => r.role_name === 'SUPER_ADMIN');
+    return { result, status: HttpStatus.CREATED };
   }
 
   async deleteOneById(id: string, user: IUserAuth): Promise<ServiceReturnType> {
     const qb = this.em.fork().createQueryBuilder(User);
     await qb.delete().where({ user_id: id, user_deleted: false }).execute();
-    return {
-      status: HttpStatus.OK,
-    };
+    return { status: HttpStatus.OK };
   }
 
   async deleteMany(filters: FilterUserDto, user: IUserAuth): Promise<ServiceReturnType> {
@@ -131,17 +141,13 @@ export class UserService {
       user_deleted: false,
     });
     await qb.delete().where(where).execute();
-    return {
-      status: HttpStatus.OK,
-    };
+    return { status: HttpStatus.OK };
   }
 
   async softDeleteOneById(id: string, user: IUserAuth): Promise<ServiceReturnType> {
     const qb = this.em.fork().createQueryBuilder(User);
     await qb.update({ user_deleted: true, user_deleted_at: new Date() }).where({ user_id: id, user_deleted: false }).execute();
-    return {
-      status: HttpStatus.OK,
-    };
+    return { status: HttpStatus.OK };
   }
 
   async updateOneById(id: string, data: UpdateUserDto, user: IUserAuth) {

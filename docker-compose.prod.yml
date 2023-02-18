@@ -2,19 +2,17 @@ version: '3.9'
 
 services:
   server:
-    container_name: auth-system-server-prod
+    container_name: nestjs-auth
     env_file: .env
     build: 
       context: .
       dockerfile: ./Dockerfile
       target: prod
       tags:
-        - "amirmuha/auth-system-prod"
+        - "amirmuha/nestjs-auth"
     ports: 
       - "4220:${PORT}"
       - "4225:${MICROSERVICE_PORT}"
-    volumes:
-      - ./:/usr/app/
     restart: on-failure
     depends_on:
       - postgres
