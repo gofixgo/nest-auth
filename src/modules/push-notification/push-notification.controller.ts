@@ -5,6 +5,7 @@ import { ReqUser } from 'src/common/decorators/req-user.decorator';
 import { JwtGuard } from '../auth/jwt/jwt.guard';
 import { CreatePushNotificationDto } from './dto/create-push-notification.dto';
 import { PushNotificationService } from './push-notification.service';
+import { SendPushNotificationToOneUserDto } from './push-notification.type';
 
 @Controller('push-notification')
 @ApiTags('Push Notification')
@@ -21,5 +22,16 @@ export class PushNotificationController {
   @MessagePattern('push-notification.subscribe')
   async subscribeEvent(@Payload() payload: CreatePushNotificationDto, user: IUserAuth) {
     return await this.pushNotificationService.subscribe(payload, user);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('send/to/users')
+  async sendToUsers(@Body() payload: SendPushNotificationToOneUserDto, user: IUserAuth) {
+    return await this.pushNotificationService.sendToUsers(payload, user);
+  }
+
+  @MessagePattern('push-notification.send.to.users')
+  async sendToUsersEvent(@Payload() payload: SendPushNotificationToOneUserDto, user: IUserAuth) {
+    return await this.pushNotificationService.sendToUsers(payload, user);
   }
 }

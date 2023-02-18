@@ -40,5 +40,5 @@ export class CreatePushNotificationDto implements webpush.PushSubscription {
     required: false,
   })
   @IsOptional()
-  expirationTime?: string;
+  expirationTime?: number;
 }
