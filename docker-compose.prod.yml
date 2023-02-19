@@ -18,17 +18,17 @@ services:
       - postgres
       - redis
     networks: 
-      - auth-system
+      - nestjs-auth
 
   redis: 
     image: redis
     ports: 
       - "6380:6379"
     networks: 
-      - auth-system
+      - nestjs-auth
 
   postgres:
-    container_name: auth-system-postgres
+    container_name: nestjs-auth-postgres
     image: postgres:latest
     env_file: .env
     environment:
@@ -40,12 +40,12 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data/
     networks: 
-      - auth-system
+      - nestjs-auth
 
 networks: 
-  auth-system:
-    name: auth-system
+  nestjs-auth:
+    name: 'nestjs-auth'
 volumes:
   postgres:
-    name: auth-system-postgres
+    name: nestjs-auth-postgres
 

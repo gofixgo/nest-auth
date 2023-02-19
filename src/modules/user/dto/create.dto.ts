@@ -25,7 +25,6 @@ export class CreateUserDto {
   @ApiProperty({ required: true })
   @IsNotEmpty({ message: 'رمز عبور الزامیست.' })
   @IsString()
-  @Length(8, 255)
   user_password: string;
   @ApiProperty({ required: true })
   @IsOptional()
