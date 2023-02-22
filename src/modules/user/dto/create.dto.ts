@@ -46,4 +46,8 @@ export class CreateUserDto {
   @IsArray()
   @IsUUID('4', { each: true })
   user_role_ids?: string[];
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsArray()
+  user_project_ids: number[];
 }

@@ -20,9 +20,8 @@ export class UserHelper {
   }
 
   async canUpdate(id: string, data: UpdateUserDto, user: IUserAuth) {
-    const roleCounts = await lastValueFrom(this.client.send('role.count', { ids: data.user_role_ids }));
-    if (!data.user_role_ids?.length || !roleCounts?.result) throw new BadRequestException('امکان حذف تمام نفش های کاربر وجود ندارد.');
-    if (roleCounts?.result !== data.user_role_ids.length) throw new NotFoundException('حداقل یکی از نقش های انتخاب شده یافت نشد.');
+    if (data.user_role_ids && !data.user_role_ids?.length) throw new BadRequestException('امکان حذف تمام نفش های کاربر وجود ندارد.');
+    if (data.user_project_ids && !data.user_project_ids?.length) throw new BadRequestException('امکان حذف تمام پروژه های کاربر وجود ندارد.');
   }
 
   hashPassword(password: string): string {

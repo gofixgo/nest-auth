@@ -6,12 +6,14 @@ import { AuthModule } from './modules/auth/auth.module';
 import { DeviceModule } from './modules/device/device.module';
 import { PushNotificationModule } from './modules/push-notification/push-notification.module';
 import { CaslModule } from './modules/casl/casl.module';
+import { BoodjehModule } from './modules/boodjeh/boodjeh.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     MikroOrmModule.forRoot(),
     CaslModule,
+    BoodjehModule,
     UserModule,
     AuthModule,
     DeviceModule,

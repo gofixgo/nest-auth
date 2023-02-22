@@ -3,13 +3,21 @@ type Role = {
   role_name: string;
   role_name_fa: string;
 };
+type Project = {
+  id: number;
+  name: string;
+  mali_code: string;
+};
+
 type IUserPayload = {
   user_id: string;
   user_email: string;
   user_username: string;
   user_is_admin: boolean;
   user_roles: Role[];
+  user_projects: Project[];
   user_role_ids: string[];
+  user_project_ids: number[];
   user_phone_number: string;
   user_first_name: string;
   user_last_name: string;

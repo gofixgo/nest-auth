@@ -17,7 +17,8 @@ export class User {
   @Property({ hidden: true }) user_password: string;
   @Property({ unique: true }) user_email?: string;
   @Property({ unique: true }) user_phone_number: string;
-  @IsNotEmptyObject({ nullable: false }) @IsString({ each: true }) @Property({ type: 'array', nullable: false }) user_role_ids: string[];
+  @IsNotEmptyObject({ nullable: false }) @IsString({ each: true }) @Property({ type: 'array', nullable: true }) user_role_ids?: string[];
+  @IsNotEmptyObject({ nullable: false }) @IsString({ each: true }) @Property({ type: 'array', nullable: true }) user_project_ids: number[];
   @OneToMany(() => Device, 'device_user', { name: 'user_devices_ids', nullable: true }) user_devices? = new Collection<Device>(this);
   @Property({ type: 'boolean', default: false }) user_deleted: boolean;
   @Property({ type: 'datetime', defaultRaw: 'NOW()' }) user_created_at: Date;

@@ -9,6 +9,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
 import { clean } from '@common/helpers/clean.helper';
 import { CASL_TOKEN } from '../casl/casl.module';
+import { BOODJEH_TOKEN } from '../boodjeh/boodjeh.module';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly em: EntityManager,
     @Inject(CASL_TOKEN) private readonly client: ClientProxy,
+    @Inject(BOODJEH_TOKEN) private readonly boodjehClient: ClientProxy,
   ) {}
 
   async getOneByUsername(username: string) {
@@ -26,6 +28,7 @@ export class AuthService {
       const superAdminRole = await this.getSuperAdminRole();
       const user = await this.userService.create(
         clean({
+          user_project_ids: [],
           user_role_ids: [superAdminRole.role_id],
           user_username: process.env.ADMIN_USERNAME,
           user_password: process.env.ADMIN_PASSWORD,
@@ -43,8 +46,11 @@ export class AuthService {
       if (!user) throw new NotFoundException('لطفا دوباره وارد شوید.');
       const userRolesObs = this.client.send('role.find.many', { ids: user.user_role_ids });
       const foundUserRoles = await lastValueFrom(userRolesObs);
+      // const userProjectsObs = this.boodjehClient.send('group.find.many', { ids: user.user_project_ids });
+      // const foundUserProjects = await lastValueFrom(userProjectsObs);
       if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
       (user as any).user_roles = foundUserRoles?.result;
+      // (user as any).user_projects = foundUserProjects?.result;
       (user as any).user_is_admin = (user as any).user_roles.some((r: Role) => r.role_name === 'SUPER_ADMIN');
       return user;
     }
