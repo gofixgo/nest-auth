@@ -72,7 +72,6 @@ export class PushNotificationService {
       }
     }
     const resolvedDevices = devices.map((d) => this.resolveDevice(d));
-    console.log(resolvedDevices);
     await this.sendToManyDevices(resolvedDevices, payload.payload);
   }
 

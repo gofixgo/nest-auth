@@ -5,8 +5,8 @@ export const BOODJEH_TOKEN = 'BOODJEH_TOKEN';
 const BOODJEH_PROVIDER: FactoryProvider = {
   provide: BOODJEH_TOKEN,
   useFactory: () => {
-    const { BOODJEH_SERVICE_HOST, BOODJEH_SERVICE_PORT } = process.env;
-    return ClientProxyFactory.create({ transport: Transport.REDIS as any, options: { host: BOODJEH_SERVICE_HOST, port: BOODJEH_SERVICE_PORT } });
+    // return ClientProxyFactory.create({ transport: Transport.NATS, options: { servers: ['nats://localhost:4222'] } });
+    return ClientProxyFactory.create({ transport: Transport.TCP, options: { host: 'localhost', port: 9993 } });
   },
 };
 

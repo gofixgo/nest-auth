@@ -15,37 +15,37 @@ services:
       - "4225:${MICROSERVICE_PORT}"
     restart: on-failure
     depends_on:
-      - postgres
+      # - postgres
       - redis
     networks: 
       - nestjs-auth
 
-  redis: 
-    image: redis
-    ports: 
-      - "6380:6379"
-    networks: 
-      - nestjs-auth
+  # redis: 
+  #   image: redis
+  #   ports: 
+  #     - "6380:6379"
+  #   networks: 
+  #     - nestjs-auth
 
-  postgres:
-    container_name: nestjs-auth-postgres
-    image: postgres:latest
-    env_file: .env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5435:5432"
-    volumes:
-      - postgres:/var/lib/postgresql/data/
-    networks: 
-      - nestjs-auth
+  # postgres:
+  #   container_name: nestjs-auth-postgres
+  #   image: postgres:latest
+  #   env_file: .env
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #   ports:
+  #     - "5435:5432"
+  #   volumes:
+  #     - postgres:/var/lib/postgresql/data/
+  #   networks: 
+  #     - nestjs-auth
 
 networks: 
   nestjs-auth:
     name: 'nestjs-auth'
-volumes:
-  postgres:
-    name: nestjs-auth-postgres
+# volumes:
+#   postgres:
+#     name: nestjs-auth-postgres
 

@@ -6,11 +6,8 @@ export const CASL_TOKEN = 'CASL_TOKEN';
 export const CASL_PROVIDER: Provider = {
   provide: CASL_TOKEN,
   useFactory: () => {
-    const { CASL_MICROSERVICE_HOST, CASL_MICROSERVICE_PORT } = process.env;
-    return ClientProxyFactory.create({
-      transport: Transport.REDIS,
-      options: { host: CASL_MICROSERVICE_HOST, port: parseInt(CASL_MICROSERVICE_PORT) },
-    });
+    // return ClientProxyFactory.create({ transport: Transport.NATS, options: { servers: ['nats://localhost:4222'] } });
+    return ClientProxyFactory.create({ transport: Transport.TCP, options: { host: 'localhost', port: 9991 } });
   },
 };
 

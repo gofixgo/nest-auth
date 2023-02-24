@@ -52,6 +52,7 @@
     "dotenv": "^16.0.3",
     "ioredis": "^5.3.0",
     "lodash": "^4.17.21",
+    "nats": "^2.12.1",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",

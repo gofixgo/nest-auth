@@ -27,7 +27,7 @@ export class UserController {
     return await this.service.create(data, user);
   }
 
-  @MessagePattern('user/find/many', { transport: Transport.REDIS })
+  @MessagePattern('user/find/many')
   async getManyEvent(@Query() filters: FilterUserDto) {
     return await this.service.getMany(filters);
   }
@@ -56,7 +56,7 @@ export class UserController {
     return await this.service.getOneByUsername(username, user);
   }
 
-  @MessagePattern('user/find/by/username', { transport: Transport.REDIS })
+  @MessagePattern('user/find/by/username')
   async getOneByUsernameEvent(username: string) {
     return await this.service.getOneByUsername(username);
   }

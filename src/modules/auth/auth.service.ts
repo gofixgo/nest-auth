@@ -46,11 +46,11 @@ export class AuthService {
       if (!user) throw new NotFoundException('لطفا دوباره وارد شوید.');
       const userRolesObs = this.client.send('role.find.many', { ids: user.user_role_ids });
       const foundUserRoles = await lastValueFrom(userRolesObs);
-      // const userProjectsObs = this.boodjehClient.send('group.find.many', { ids: user.user_project_ids });
-      // const foundUserProjects = await lastValueFrom(userProjectsObs);
+      const userProjectsObs = this.boodjehClient.send('group.find.many', { ids: user.user_project_ids });
+      const foundUserProjects = await lastValueFrom(userProjectsObs);
       if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
       (user as any).user_roles = foundUserRoles?.result;
-      // (user as any).user_projects = foundUserProjects?.result;
+      (user as any).user_projects = foundUserProjects?.result;
       (user as any).user_is_admin = (user as any).user_roles.some((r: Role) => r.role_name === 'SUPER_ADMIN');
       return user;
     }

@@ -104,12 +104,12 @@ export class UserService {
     if (!result) throw new NotFoundException('کاربر با آیدی وارد شده یافت نشد.');
     delete result.user_password;
     const userRolesObs = this.client.send('role.find.many', { ids: result.user_role_ids });
-    // const userProjectsObs = this.boodjehClient.send('group.find.many', { ids: result.user_project_ids });
-    // const foundUserProjects = await lastValueFrom(userProjectsObs);
+    const userProjectsObs = this.boodjehClient.send('group.find.many', { ids: result.user_project_ids });
+    const foundUserProjects = await lastValueFrom(userProjectsObs);
     const foundUserRoles = await lastValueFrom(userRolesObs);
     if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
     (result as any).user_roles = foundUserRoles?.result;
-    // (result as any).user_projects = foundUserProjects?.result;
+    (result as any).user_projects = foundUserProjects?.result;
     (result as any).user_is_admin = (user as any).user_roles.some((r: Role) => r.role_name === 'SUPER_ADMIN');
     return { result, status: HttpStatus.CREATED };
   }
@@ -120,12 +120,12 @@ export class UserService {
     if (!result) throw new NotFoundException('کاربر با آیدی وارد شده یافت نشد.');
     delete result.user_password;
     const userRolesObs = this.client.send('role.find.many', { ids: result.user_role_ids });
-    // const userProjectsObs = this.boodjehClient.send('group.find.many', { ids: result.user_project_ids });
+    const userProjectsObs = this.boodjehClient.send('group.find.many', { ids: result.user_project_ids });
     const foundUserRoles = await lastValueFrom(userRolesObs);
-    // const foundUserProjects = await lastValueFrom(userProjectsObs);
+    const foundUserProjects = await lastValueFrom(userProjectsObs);
     if (!foundUserRoles) throw new InternalServerErrorException('مشکلی در یافتن نقش های کاربر رخ داد.');
     (result as any).user_roles = foundUserRoles?.result;
-    // (result as any).user_projects = foundUserProjects?.result;
+    (result as any).user_projects = foundUserProjects?.result;
     (result as any).user_is_admin = (result as any).user_roles?.some((r: Role) => r.role_name === 'SUPER_ADMIN');
     return { result, status: HttpStatus.CREATED };
   }

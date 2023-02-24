@@ -29,7 +29,7 @@ export class AuthController {
     return await this.service.resetPassword(data, user);
   }
 
-  @MessagePattern('auth/validate/token', { transport: Transport.REDIS })
+  @MessagePattern('auth/validate/token')
   async validateToken(token: string) {
     return await this.service.validateToken(token);
   }

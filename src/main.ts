@@ -12,7 +12,7 @@ import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const PORT = process.env.PORT;
-  const { MICROSERVICE_HOST, MICROSERVICE_PORT } = process.env;
+  const { NATS_HOST, NATS_PORT } = process.env;
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.use(
     cors({
@@ -28,9 +28,15 @@ async function bootstrap() {
         'http://localhost:8081',
         'http://94.183.158.59:7776',
         'http://94.183.158.59:8081',
+        'http://94.183.158.59:8082',
         'http://94.183.158.59:4998',
         'http://94.183.158.59:4999',
         'http://94.183.158.59:7777',
+        'http://192.168.1.37:3000',
+        'http://192.168.1.37:7777',
+        'http://192.168.1.37:7776',
+        'http://192.168.1.37:4998',
+        'http://192.168.1.37:4999',
         'http://192.168.1.58:3000',
         'http://192.168.1.58:7777',
         'http://192.168.1.58:7776',
@@ -54,7 +60,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new CustomExceptionFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  app.connectMicroservice({ transport: Transport.REDIS, options: { host: MICROSERVICE_HOST, port: MICROSERVICE_PORT } }, { inheritAppConfig: true });
+  app.connectMicroservice({ transport: Transport.TCP, options: { host: 'localhost', port: 9990 } }, { inheritAppConfig: true });
 
   await app.get(MikroORM).getMigrator().up();
   await app.get(MikroORM).getSchemaGenerator().ensureDatabase();
