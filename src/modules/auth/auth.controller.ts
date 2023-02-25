@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReqUser } from 'src/common/decorators/req-user.decorator';
 import { AuthService } from './auth.service';
@@ -7,7 +7,8 @@ import { Request } from 'express';
 import { AuthLoginDto } from './dto/login.dto';
 import { JwtGuard } from './jwt/jwt.guard';
 import { ResetPasswordDto } from './dto/reset.dto';
-import { MessagePattern, Transport } from '@nestjs/microservices';
+import { MessagePattern } from '@nestjs/microservices';
+import { UpdateUserDto } from '../user/dto/update.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -27,6 +28,13 @@ export class AuthController {
   @Patch('reset-password')
   async resetPassword(@Body() data: ResetPasswordDto, @ReqUser() user: IUserAuth) {
     return await this.service.resetPassword(data, user);
+  }
+
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  @Put()
+  async updateSelf(@Body() data: UpdateUserDto, @ReqUser() user: IUserAuth) {
+    return await this.service.updateSelf(data, user);
   }
 
   @MessagePattern('auth/validate/token')

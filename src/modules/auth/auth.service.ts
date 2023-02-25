@@ -1,6 +1,14 @@
 import * as bcrypt from 'bcryptjs';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { ResetPasswordDto } from './dto/reset.dto';
 import { UserService } from '../user/user.service';
@@ -10,6 +18,8 @@ import { lastValueFrom } from 'rxjs';
 import { clean } from '@common/helpers/clean.helper';
 import { CASL_TOKEN } from '../casl/casl.module';
 import { BOODJEH_TOKEN } from '../boodjeh/boodjeh.module';
+import { UpdateUserDto } from '../user/dto/update.dto';
+import { serialize } from '@mikro-orm/core';
 
 @Injectable()
 export class AuthService {
@@ -56,19 +66,26 @@ export class AuthService {
     }
   }
 
+  async updateSelf(data: UpdateUserDto, user: IUserAuth) {
+    const foundUser = await this.em.fork().findOne(User, { user_id: user.user_id });
+    if (!foundUser) throw new UnauthorizedException('لطفا دوباره وارد شوید.');
+    if (data.user_email) foundUser.user_email = data.user_email;
+    if (data.user_last_name) foundUser.user_last_name = data.user_last_name;
+    if (data.user_first_name) foundUser.user_first_name = data.user_first_name;
+    if (data.user_phone_number) foundUser.user_phone_number = data.user_phone_number;
+    await this.em.fork().persistAndFlush(foundUser);
+    return { result: serialize(foundUser), status: HttpStatus.OK };
+  }
+
   async resetPassword(updateDto: ResetPasswordDto, user: IUserAuth) {
-    const qb = this.em.createQueryBuilder(User);
-    const [foundUser] = await qb.select('*').where({ user_username: user.user_username, user_deleted: false }).execute();
+    const foundUser = await this.em.fork().findOne(User, { user_username: user.user_username, user_deleted: false });
     const isOldPasswordCorrect = await bcrypt.compare(updateDto.old_password, foundUser.user_password);
     if (!isOldPasswordCorrect) {
       throw new BadRequestException('رمز قبلی وارد شده صحیح نمی باشد.');
     }
-    await qb.update({ user_password: bcrypt.hashSync(updateDto.new_password, parseInt(process.env.BCRYPT_HASH_SALT)) }).where({ id: user.user_id });
-
-    return {
-      message: 'رمز با موفقیت تغییر یافت.',
-      statusCode: 200,
-    };
+    foundUser.user_password = bcrypt.hashSync(updateDto.new_password, parseInt(process.env.BCRYPT_HASH_SALT));
+    await this.em.fork().persistAndFlush(foundUser);
+    return { message: 'رمز با موفقیت تغییر یافت.', statusCode: 200 };
   }
 
   async validateToken(token: string) {

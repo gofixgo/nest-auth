@@ -10,6 +10,6 @@ export class AuthLoginDto {
   @ApiProperty({ required: true })
   @IsNotEmpty()
   @IsString()
-  @Length(8, 255)
+  @Length(4, 255)
   password: string;
 }
